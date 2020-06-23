@@ -99,14 +99,27 @@ async def recv_command():
     if present:
         await recv_file("example_text_file.txt")
 
+async def recv_dir_string():
+     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(('127.0.0.1', 8889))                            
+        sock.listen()                                                 
+        conn, addr = sock.accept()                                    
+                                                                               
+        reader, writer = await asyncio.open_connection(sock=conn)          
+        data = await reader.read()
+        
+        return data.decode()
+
+async def show_command():
+    await send_command('show')
+    print( await recv_dir_string() )
+
+##asyncio.run(send_command('store'))
 ##asyncio.run(send_file_name())
 ##asyncio.run(send_file_data())
-##asyncio.run(send_command('store'))
-##asyncio.run(send_command('recv'))
-##asyncio.run(send_file_name())
-##asyncio.run(recv_file_presence())
-##asyncio.run(recv_file_data()
-asyncio.run(recv_command())
+##asyncio.run(recv_command())
+asyncio.run(show_command())
 # currently working on a better way to recieve data being the socket keeps getting used repeatedly
 
 @click.group()
@@ -131,3 +144,10 @@ cli.add_command(show)
 
 if __name__ == '__main__':
     cli()
+
+'''
+    Current:
+        - implement all commands
+        - refactor for parameterization
+        - refactor into cli
+'''
