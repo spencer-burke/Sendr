@@ -71,7 +71,7 @@ async def recv_file_presence():
     listener_sock.bind(('127.0.0.1', 8889))                            
     listener_sock.listen()                                                 
     conn, addr = listener_sock.accept()                                    
-                                                                           
+
     reader, writer = await asyncio.open_connection(sock=conn)          
     presence = await reader.read()
 
@@ -89,19 +89,24 @@ async def recv_file(file_name):
                                                                                
         reader, writer = await asyncio.open_connection(sock=conn)          
         data = await reader.read()
-        with open(file_name, 'a+') as writer:
+        with open(file_name, 'wb') as writer:
             writer.write(data)
 
 async def recv_command():
-    pass
+    await send_command('recv')
+    await send_file_name()
+    present = await recv_file_presence()
+    if present:
+        await recv_file("example_text_file.txt")
 
 ##asyncio.run(send_file_name())
 ##asyncio.run(send_file_data())
 ##asyncio.run(send_command('store'))
-asyncio.run(send_command('recv'))
-asyncio.run(send_file_name())
-asyncio.run(recv_file_presence())
-asyncio.run(recv_file_data()
+##asyncio.run(send_command('recv'))
+##asyncio.run(send_file_name())
+##asyncio.run(recv_file_presence())
+##asyncio.run(recv_file_data()
+asyncio.run(recv_command())
 # currently working on a better way to recieve data being the socket keeps getting used repeatedly
 
 @click.group()
