@@ -90,7 +90,7 @@ async def recv_file_presence(addr):
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(addr) 
         sock.listen()
-        conn, addr = listener_sock.accept()
+        conn, addr = sock.accept()
 
         reader, writer = await asyncio.open_connection(sock=conn) 
 
