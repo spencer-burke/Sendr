@@ -1,0 +1,2 @@
+IP: <insert ip here>
+SERVER IP: <insert ip here> 
