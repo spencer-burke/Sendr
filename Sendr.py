@@ -167,12 +167,12 @@ def cli():
 @click.command()
 @click.option('--file', help='File being stored in server')
 def store(file):
-   asyncio.run(store_command()) 
+   asyncio.run(store_command(file)) 
 
 @click.command()
 @click.option('--file', help='File being recieved from  server')
 def recv(file):
-     asyncio.run(recv_command()) 
+     asyncio.run(recv_command(file)) 
 
 @click.command()
 def show():
