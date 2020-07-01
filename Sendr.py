@@ -139,11 +139,11 @@ async def recv_command(file_name):
     when called it will query the server for the file specified and will retrieve it if present
     file_name(string): name of the file to recieve
     '''
-    await send_command('recv')
-    await send_file_name()
-    present = await recv_file_presence()
+    await send_command('recv', ADDRESSES[1])
+    await send_file_name(file_name, (ADDRESSES[0], DATA_PORT) )
+    present = await recv_file_presence( (ADDRESSES[0], DATA_PORT) ) 
     if present:
-        await recv_file("example_text_file.txt")
+        await recv_file( file_name, (ADDRESSES[0], DATA_PORT) )
     else:
         print("ERROR: [FILENAME] not available in server")
 
@@ -151,15 +151,15 @@ async def show_command():
     '''
     when called it will connect to the server and recieve a list of files available to be served
     '''
-    await send_command('show')
-    print( await recv_dir_string() )
+    await send_command('show', ADDRESSES[1])
+    print( await recv_dir_string( (ADDRESSES[0], DATA_PORT) ) )
 
-async def store_command(file):
+async def store_command(file_name):
     '''
     when called it will send a file to the server to be stored
     '''
     await send_command('store', ADDRESSES[1])
-    await send_file_name(file, (ADDRESSES[0], DATA_PORT))
+    await send_file_name(file_name, (ADDRESSES[0], DATA_PORT))
     await send_file_data((ADDRESSES[0], DATA_PORT))
 
 @click.group()
