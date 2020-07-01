@@ -53,7 +53,7 @@ async def send_file_name(file_name, addr):
         sock.bind(addr)
         sock.listen()
 
-        conn, addr = listener_sock.accept()
+        conn, addr = sock.accept()
 
         reader, writer = await asyncio.open_connection(sock=conn)
 
