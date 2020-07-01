@@ -1,3 +1,6 @@
+'''
+CURRENTLY REFACTORING INTO PARAMETERIZED VERSION; ADDING CONFIGURATION
+'''
 import asyncio
 import socket
 import click
@@ -5,97 +8,124 @@ import os
 
 COM_PORT = 8888
 DATA_PORT = 8889
+ADDRESSES = conf_ip("./conf/conf.txt")
 
-async def transfer_data_encoded(reader, writer, data):
+def conf_ip(path):
+    '''
+    path(string): path to conf file
+    return(int): the ip used for the server 
+    '''
+    with open(path, 'r') as reader:
+        data  = reader.readlines()
+        client_ip = data[0][4:-1]
+        server_ip = data[1][11:-1]
+        return (client_ip, server_ip)
+
+async def transfer_data_encoded(writer, data):
      writer.write(data.encode())
      await writer.drain()
      writer.write_eof()
 
-async def transfer_data_raw(reader, writer, data):
+async def transfer_data_raw(writer, data):
      writer.write(data)
      await writer.drain()
      writer.write_eof()
 
-# this function might be used to configure the socket
-def listen_raw_connection():
-    pass
+async def send_command(command, server_ip):
+    '''
+    command(string): the command being sent to the server 
+    server_ip(string): the ip address of the server being connected to
+    ''' 
+    reader, writer = await asyncio.open_connection(server_ip, 8888)
 
-async def send_command(command):
-    reader, writer = await asyncio.open_connection('127.0.0.1', 8888)
-
-    await transfer_data_encoded(reader, writer, command)
+    await transfer_data_encoded(writer, command)
     data = await reader.read()
-
-    if data.decode() == "ack":
-        print("command recieved")
-
+    
     writer.close()
 
-async def send_file_name():
-    listener_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listener_sock.bind(('127.0.0.1', 8889))
-    listener_sock.listen()
-    conn, addr = listener_sock.accept()
-
-    n_reader, n_writer = await asyncio.open_connection(sock=conn)
-
-    await transfer_data_encoded(n_reader, n_writer, "example_text_file.txt")
-
-    listener_sock.close()
-
-async def send_file_data():
-    listener_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listener_sock.bind(('127.0.0.1', 8889))
-    listener_sock.listen()
-    conn, addr = listener_sock.accept()
-
-    n_reader, n_writer = await asyncio.open_connection(sock=conn)
-
-    with open("example_text_file.txt", 'rb') as file_reader:
-        data = file_reader.read()
-        n_writer.write(data)
-        await n_writer.drain()
-        n_writer.write_eof()
-
-    listener_sock.close()
-
-async def recv_file_presence():
+async def send_file_name(file_name, addr):
     '''
-    recv whether the file exists on the server or not
-    return(boolean): true if the file exists, false if it doesn't
+    file_name(string): name of the file to send
+    addr(tuple): contains the ip and port the socket should listen on
+    the socket must listen on port 8889 as that is the data port being used to send data
+    previous bind('127.0.0.1', 8889)                                                        
     '''
-    listener_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listener_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listener_sock.bind(('127.0.0.1', 8889))                            
-    listener_sock.listen()                                                 
-    conn, addr = listener_sock.accept()                                    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock: 
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(addr)
+        sock.listen()
 
-    reader, writer = await asyncio.open_connection(sock=conn)          
-    presence = await reader.read()
+        conn, addr = listener_sock.accept()
 
-    return presence.decode() == "prs"
+        reader, writer = await asyncio.open_connection(sock=conn)
 
-async def recv_file(file_name):
+        await transfer_data_encoded(writer, file_name)
+
+async def send_file_data(addr):
     '''
-    file_name(string): name of the file being recv'd
+    addr(tuple): contains the ip and port the socket should listen on
+    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('127.0.0.1', 8889))                            
+        sock.bind(addr)
+        sock.listen()
+        conn, addr = sock.accept()
+
+        reader, writer = await asyncio.open_connection(sock=conn)
+
+        with open("example_text_file.txt", 'rb') as file_reader:
+                data = file_reader.read()
+                n_writer.write(data)
+                await n_writer.drain()
+                n_writer.write_eof()
+
+
+async def recv_file_presence(addr):
+    '''
+    recv whether the file exists on the server or not
+    addr(tuple): contains the ip and port the socket should listen on
+    return(boolean): true if the file exists, false if it doesn't
+    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
+    '''
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock: 
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(addr) 
+        sock.listen()
+        conn, addr = listener_sock.accept()
+
+        reader, writer = await asyncio.open_connection(sock=conn) 
+
+        presence = await reader.read()
+
+        return presence.decode() == "prs"
+
+async def recv_file(addr, file_name):
+    '''
+    addr(tuple): contains the ip and port the socket should listen on
+    file_name(string): name of the file being recv'd
+    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
+    '''
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(addr)                            
         sock.listen()                                                 
         conn, addr = sock.accept()                                    
                                                                                
         reader, writer = await asyncio.open_connection(sock=conn)          
         data = await reader.read()
+
         with open(file_name, 'wb') as writer:
             writer.write(data)
 
-async def recv_dir_string():
+async def recv_dir_string(addr):
+    '''
+    connect to the server and recieve a list of files there
+    addr(tuple): contains the ip and port the socket should listen on
+    '''
      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('127.0.0.1', 8889))                            
+        sock.bind(addr)                            
         sock.listen()                                                 
         conn, addr = sock.accept()                                    
                                                                                
@@ -104,39 +134,46 @@ async def recv_dir_string():
         
         return data.decode()
 
-async def recv_command():
+async def recv_command(file_name):
+    '''
+    when called it will query the server for the file specified and will retrieve it if present
+    file_name(string): name of the file to recieve
+    '''
     await send_command('recv')
     await send_file_name()
     present = await recv_file_presence()
     if present:
         await recv_file("example_text_file.txt")
+    else:
+        print("ERROR: [FILENAME] not available in server")
 
 async def show_command():
+    '''
+    when called it will connect to the server and recieve a list of files available to be served
+    '''
     await send_command('show')
     print( await recv_dir_string() )
 
-async def store_command():
-    await send_command('store'))
-    await send_file_name()
-    await send_file_data()
-
-##asyncio.run(send_command('store'))
-##asyncio.run(send_file_name())
-##asyncio.run(send_file_data())
-##asyncio.run(recv_command())
-##asyncio.run(show_command())
-# currently working on a better way to recieve data being the socket keeps getting used repeatedly
+async def store_command(file):
+    '''
+    when called it will send a file to the server to be stored
+    '''
+    await send_command('store', ADDRESSES[1])
+    await send_file_name(file, (ADDRESSES[0], DATA_PORT))
+    await send_file_data((ADDRESSES[0], DATA_PORT))
 
 @click.group()
 def cli():
     pass
 
 @click.command()
-def store():
+@click.option('--file', help='File being stored in server')
+def store(file):
    store_command() 
 
 @click.command()
-def recv():
+@click.option('--file', help='File being recieved from  server')
+def recv(file):
     recv_command() 
 
 @click.command()
@@ -152,6 +189,8 @@ if __name__ == '__main__':
 
 '''
     Current:
+        - add configuration
         - refactor for parameterization
-        - refactor into cli
+        - implement remote version
 '''
+
