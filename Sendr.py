@@ -1,6 +1,3 @@
-'''
-CURRENTLY REFACTORING INTO PARAMETERIZED VERSION; ADDING CONFIGURATION
-'''
 import asyncio
 import socket
 import click
@@ -8,7 +5,6 @@ import os
 
 COM_PORT = 8888
 DATA_PORT = 8889
-ADDRESSES = conf_ip("./conf/conf.txt")
 
 def conf_ip(path):
     '''
@@ -20,6 +16,8 @@ def conf_ip(path):
         client_ip = data[0][4:-1]
         server_ip = data[1][11:-1]
         return (client_ip, server_ip)
+
+ADDRESSES = conf_ip("./conf/conf.txt")
 
 async def transfer_data_encoded(writer, data):
      writer.write(data.encode())
@@ -123,7 +121,7 @@ async def recv_dir_string(addr):
     connect to the server and recieve a list of files there
     addr(tuple): contains the ip and port the socket should listen on
     '''
-     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(addr)                            
         sock.listen()                                                 
@@ -169,16 +167,16 @@ def cli():
 @click.command()
 @click.option('--file', help='File being stored in server')
 def store(file):
-   store_command() 
+   asyncio.run(store_command()) 
 
 @click.command()
 @click.option('--file', help='File being recieved from  server')
 def recv(file):
-    recv_command() 
+     asyncio.run(recv_command()) 
 
 @click.command()
 def show():
-    show_command() 
+    asyncio.run(show_command()) 
 
 cli.add_command(store)
 cli.add_command(recv)
@@ -186,11 +184,4 @@ cli.add_command(show)
 
 if __name__ == '__main__':
     cli()
-
-'''
-    Current:
-        - add configuration
-        - refactor for parameterization
-        - implement remote version
-'''
 
