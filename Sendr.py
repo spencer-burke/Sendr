@@ -98,7 +98,7 @@ async def recv_file_presence(addr):
 
         return presence.decode() == "prs"
 
-async def recv_file(addr, file_name):
+async def recv_file(file_name, addr):
     '''
     addr(tuple): contains the ip and port the socket should listen on
     file_name(string): name of the file being recv'd
