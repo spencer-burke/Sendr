@@ -59,9 +59,10 @@ async def send_file_name(file_name, addr):
 
         await transfer_data_encoded(writer, file_name)
 
-async def send_file_data(addr):
+async def send_file_data(addr, file_name):
     '''
     addr(tuple): contains the ip and port the socket should listen on
+    file_name(string): the name of the file being sent
     PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -72,7 +73,7 @@ async def send_file_data(addr):
 
         reader, writer = await asyncio.open_connection(sock=conn)
 
-        with open("example_text_file.txt", 'rb') as file_reader:
+        with open(file_name, 'rb') as file_reader:
                 data = file_reader.read()
                 n_writer.write(data)
                 await n_writer.drain()
@@ -100,8 +101,8 @@ async def recv_file_presence(addr):
 
 async def recv_file(file_name, addr):
     '''
-    addr(tuple): contains the ip and port the socket should listen on
     file_name(string): name of the file being recv'd
+    addr(tuple): contains the ip and port the socket should listen on
     PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -158,7 +159,7 @@ async def store_command(file_name):
     '''
     await send_command('store', ADDRESSES[1])
     await send_file_name(file_name, (ADDRESSES[0], DATA_PORT))
-    await send_file_data((ADDRESSES[0], DATA_PORT))
+    await send_file_data(file_name, (ADDRESSES[0], DATA_PORT))
 
 @click.group()
 def cli():
