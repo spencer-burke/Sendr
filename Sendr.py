@@ -45,8 +45,6 @@ async def send_file_name(file_name, addr):
     '''
     file_name(string): name of the file to send
     addr(tuple): contains the ip and port the socket should listen on
-    the socket must listen on port 8889 as that is the data port being used to send data
-    previous bind('127.0.0.1', 8889)                                                        
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock: 
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -63,7 +61,6 @@ async def send_file_data(file_name, addr):
     '''
     addr(tuple): contains the ip and port the socket should listen on
     file_name(string): the name of the file being sent
-    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -85,7 +82,6 @@ async def recv_file_presence(addr):
     recv whether the file exists on the server or not
     addr(tuple): contains the ip and port the socket should listen on
     return(boolean): true if the file exists, false if it doesn't
-    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock: 
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -103,7 +99,6 @@ async def recv_file(file_name, addr):
     '''
     file_name(string): name of the file being recv'd
     addr(tuple): contains the ip and port the socket should listen on
-    PORT MUST BE 8889 PREVIOUS BIND CALL -> ('127.0.0.1', 8889)
     '''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
