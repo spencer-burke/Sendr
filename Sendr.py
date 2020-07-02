@@ -75,9 +75,9 @@ async def send_file_data(file_name, addr):
 
         with open(file_name, 'rb') as file_reader:
                 data = file_reader.read()
-                n_writer.write(data)
+                writer.write(data)
                 await n_writer.drain()
-                n_writer.write_eof()
+                writer.write_eof()
 
 
 async def recv_file_presence(addr):
