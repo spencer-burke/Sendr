@@ -76,7 +76,7 @@ async def send_file_data(file_name, addr):
         with open(file_name, 'rb') as file_reader:
                 data = file_reader.read()
                 writer.write(data)
-                await n_writer.drain()
+                await writer.drain()
                 writer.write_eof()
 
 
