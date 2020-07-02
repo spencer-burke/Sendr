@@ -59,7 +59,7 @@ async def send_file_name(file_name, addr):
 
         await transfer_data_encoded(writer, file_name)
 
-async def send_file_data(addr, file_name):
+async def send_file_data(file_name, addr):
     '''
     addr(tuple): contains the ip and port the socket should listen on
     file_name(string): the name of the file being sent
